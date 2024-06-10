@@ -1,0 +1,89 @@
+#include <Servo.h>
+
+const int trigPin = 9;
+const int echoPin = 10;
+const int motor1Pin1 = 3;
+const int motor1Pin2 = 4;
+const int motor2Pin1 = 5;
+const int motor2Pin2 = 6;
+const int enA = 10;
+const int enB = 11;
+const int servoPin = 12;
+
+Servo myServo;
+long duration;
+int distance;
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
+  pinMode(enA, OUTPUT);
+  pinMode(enB, OUTPUT);
+  
+  myServo.attach(servoPin);
+  myServo.write(90);
+  
+  Serial.begin(9600);
+}
+
+void loop() {
+  distance = getDistance();
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  
+  if (distance > 5) {
+    moveForward();
+  } else {
+    stopMotors();
+    turnRight();
+  }
+  
+  delay(100);
+}
+
+int getDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+  return distance;
+}
+
+void moveForward() {
+  analogWrite(enA, 80);
+  analogWrite(enB, 80);
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, HIGH);
+  digitalWrite(motor2Pin2, LOW);
+}
+
+void stopMotors() {
+  analogWrite(enA, 0);
+  analogWrite(enB, 0);
+}
+
+void turnRight() {
+  myServo.write(0);
+  delay(500);
+  analogWrite(enA, 80);
+  analogWrite(enB, 80);
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH);
+  delay(800);
+  stopMotors();
+  myServo.write(90);
+  delay(500);
+  moveForward();
+}
