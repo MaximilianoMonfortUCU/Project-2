@@ -1,0 +1,103 @@
+#include <Servo.h>
+
+// Pines del sensor ultrasónico (conectado al Sensor Shield)
+const int trigPin = 9;
+const int echoPin = 10;
+
+// Pines del driver de motor L298N (conectado al Sensor Shield)
+const int motor1Pin1 = 3;
+const int motor1Pin2 = 4;
+const int motor2Pin1 = 5;
+const int motor2Pin2 = 6;
+
+// Pin del servo motor (conectado al Sensor Shield)
+const int servoPin = 11;
+
+Servo myServo; // Crear objeto servo
+
+// Variables para la distancia
+long duration;
+int distance;
+
+void setup() {
+  // Configurar los pines del sensor ultrasónico
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  // Configurar los pines del motor
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
+  
+  // Configurar el pin del servo motor
+  myServo.attach(servoPin);
+
+  // Inicializar el servo motor en la posición inicial
+  myServo.write(90);
+  
+  // Iniciar comunicación serial
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Calcular la distancia del obstáculo
+  distance = getDistance();
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  
+  if (distance > 5) {
+    // Si no hay obstáculo a menos de 5 cm, avanzar
+    moveForward();
+  } else {
+    // Si hay obstáculo a menos de 5 cm, girar con el servo motor y retroceder
+    myServo.write(0);  // Girar el servo motor a la posición izquierda
+    delay(500);        // Esperar a que el servo se mueva
+    
+    moveBackward();    // Retroceder un poco
+    delay(500);        // Esperar un momento
+    
+    myServo.write(180); // Girar el servo motor a la posición derecha
+    delay(500);         // Esperar a que el servo se mueva
+    
+    moveForward();     // Avanzar nuevamente
+    delay(500);        // Esperar un momento
+    
+    myServo.write(90); // Volver el servo motor a la posición central
+    delay(500);        // Esperar a que el servo se mueva
+  }
+  
+  delay(100); // Pequeña demora para estabilidad
+}
+
+int getDistance() {
+  // Enviar un pulso ultrasónico
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Leer el tiempo que tarda en recibir el eco
+  duration = pulseIn(echoPin, HIGH);
+  
+  // Calcular la distancia en cm
+  distance = duration * 0.034 / 2;
+  return distance;
+}
+
+void moveForward() {
+  // Configurar los motores para avanzar
+  digitalWrite(motor1Pin1, HIGH);
+  digitalWrite(motor1Pin2, LOW);
+  digitalWrite(motor2Pin1, HIGH);
+  digitalWrite(motor2Pin2, LOW);
+}
+
+void moveBackward() {
+  // Configurar los motores para retroceder
+  digitalWrite(motor1Pin1, LOW);
+  digitalWrite(motor1Pin2, HIGH);
+  digitalWrite(motor2Pin1, LOW);
+  digitalWrite(motor2Pin2, HIGH);
+}
