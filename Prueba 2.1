@@ -1,0 +1,82 @@
+const int motor1Pin1 = 5; // IN1 del controlador de motores
+const int motor1Pin2 = 6; // IN2 del controlador de motores
+const int motor2Pin1 = 3; // IN3 del controlador de motores
+const int motor2Pin2 = 4; // IN4 del controlador de motores
+const int conveyorMotorPin1 = 8; // Pin del primer motor de la cinta transportadora
+const int conveyorMotorPin2 = 9; // Pin del segundo motor de la cinta transportadora
+const int tiltPin = 7; // Pin del sensor de inclinación
+const int irSensor1Pin = 10; // Pin del sensor TCRT5000
+const int irLedPin1 = 11; // Pin de control del LED del TCRT5000
+
+// Velocidad del robot (reducida)
+const int speed = 80; // Velocidad reducida del motor (PWM)
+
+void setup() {
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
+  
+  pinMode(conveyorMotorPin1, OUTPUT); // Configurar el pin del primer motor de la cinta transportadora como salida
+  pinMode(conveyorMotorPin2, OUTPUT); // Configurar el pin del segundo motor de la cinta transportadora como salida
+  
+  pinMode(tiltPin, INPUT); // Configurar el pin del sensor de inclinación como entrada
+  pinMode(irSensor1Pin, INPUT); // Configurar el pin del sensor TCRT5000 como entrada
+  pinMode(irLedPin1, OUTPUT); // Configurar el pin de control del LED del TCRT5000 como salida
+  
+  Serial.begin(9600);
+
+  // Iniciar la cinta transportadora
+  startConveyor();
+}
+
+void loop() {
+  digitalWrite(irLedPin1, HIGH); // Encender el LED del TCRT5000
+  
+  int tiltState = digitalRead(tiltPin); // Leer el estado del sensor de inclinación
+  int irSensor1State = digitalRead(irSensor1Pin); // Leer el estado del sensor TCRT5000
+
+  if (tiltState == LOW && irSensor1State == LOW) {
+    // Si el sensor infrarrojo detecta un objeto, girar 90 grados
+    turnRight();
+  } else {
+    // Si no, avanzar
+    moveForward();
+  }
+  
+  delay(100);
+  
+  digitalWrite(irLedPin1, LOW); // Apagar el LED del TCRT5000
+}
+
+void moveForward() {
+  analogWrite(motor1Pin1, speed);
+  analogWrite(motor1Pin2, 0);
+  analogWrite(motor2Pin1, speed);
+  analogWrite(motor2Pin2, 0);
+}
+
+void stopMotors() {
+  analogWrite(motor1Pin1, 0);
+  analogWrite(motor1Pin2, 0);
+  analogWrite(motor2Pin1, 0);
+  analogWrite(motor2Pin2, 0);
+}
+
+void turnRight() {
+  stopMotors();
+  delay(500);
+  analogWrite(motor1Pin1, speed);
+  analogWrite(motor1Pin2, 0);
+  analogWrite(motor2Pin1, 0);
+  analogWrite(motor2Pin2, speed);
+  delay(800); // Ajustar el tiempo de delay para que el robot gire 90 grados
+  stopMotors();
+  delay(500);
+  moveForward();
+}
+
+void startConveyor() {
+  digitalWrite(conveyorMotorPin1, HIGH);
+  digitalWrite(conveyorMotorPin2, LOW);
+}
