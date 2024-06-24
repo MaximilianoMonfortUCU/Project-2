@@ -1,0 +1,78 @@
+const int motor1Pin1 = 5; // IN1 del controlador de motores
+const int motor1Pin2 = 6; // IN2 del controlador de motores
+const int motor2Pin1 = 3; // IN3 del controlador de motores
+const int motor2Pin2 = 4; // IN4 del controlador de motores
+const int trigPin = 10; // Pin TRIG del sensor de ultrasonido
+const int echoPin = 9; // Pin ECHO del sensor de ultrasonido
+
+// Velocidad del robot (reducida)
+const int speed = 80; 
+// Distancia (en centímetros)
+const int thresholdDistance = 20;
+
+void setup() {
+  pinMode(motor1Pin1, OUTPUT);
+  pinMode(motor1Pin2, OUTPUT);
+  pinMode(motor2Pin1, OUTPUT);
+  pinMode(motor2Pin2, OUTPUT);
+  
+  pinMode(trigPin, OUTPUT); // Configurar el pin TRIG salida
+  pinMode(echoPin, INPUT); // Configurar el pin ECHO entrada
+  
+  Serial.begin(9600);
+}
+
+void loop() {
+  long duration, distance;
+  
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  
+  distance = (duration / 2) / 29.1;
+  
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+  
+  if (distance < thresholdDistance) {
+    // Si la distancia es menor al umbral, girar 90 grados
+    turnRight();
+  } else {
+    // Si no, avanzar
+    moveForward();
+  }
+  
+  delay(100);
+}
+
+void moveForward() {
+  analogWrite(motor1Pin1, speed);
+  analogWrite(motor1Pin2, 0);
+  analogWrite(motor2Pin1, speed);
+  analogWrite(motor2Pin2, 0);
+}
+
+void stopMotors() {
+  analogWrite(motor1Pin1, 0);
+  analogWrite(motor1Pin2, 0);
+  analogWrite(motor2Pin1, 0);
+  analogWrite(motor2Pin2, 0);
+}
+
+void turnRight() {
+  stopMotors();
+  delay(500);
+  analogWrite(motor1Pin1, speed);
+  analogWrite(motor1Pin2, 0);
+  analogWrite(motor2Pin1, 0);
+  analogWrite(motor2Pin2, speed);
+  delay(800); // Ajustar el tiempo de delay para que el robot gire 90 grados
+  stopMotors();
+  delay(500);
+  moveForward();
+}
